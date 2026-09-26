@@ -80,9 +80,47 @@ h1, h2, h3, p { margin-top: 0; }
 .section-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
 .section-heading.compact { margin-bottom: 9px; }
 .section-heading h2, .village-log h2 { margin: 0; font: 600 17px var(--font-display); }
-.category-tabs { display: flex; gap: 4px; margin: 0 -2px 12px; overflow-x: auto; padding: 2px; scrollbar-width: none; }
-.category-tabs button { flex: 0 0 auto; padding: 7px 9px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink-soft); background: #eeeadd; cursor: pointer; font-size: 10px; font-weight: 700; }
-.category-tabs button.active { color: white; border-color: var(--green); background: var(--green); }
+.category-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 2px;
+}
+.category-tabs button {
+  min-width: 0;
+  width: 100%;
+  min-height: 34px;
+  padding: 8px 7px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--ink-soft);
+  background: #eeeadd;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
+}
+.category-tabs button:hover {
+  border-color: #8fa696;
+  background: #f7f2e6;
+  transform: translateY(-1px);
+}
+.category-tabs button.active {
+  color: white;
+  border-color: var(--green);
+  background: var(--green);
+  box-shadow: 0 3px 8px rgba(47, 107, 88, .2);
+}
+.category-tabs button:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
 .build-list { display: grid; gap: 7px; }
 .build-card {
   display: grid; grid-template-columns: 38px 1fr auto; gap: 9px; align-items: center; width: 100%;
