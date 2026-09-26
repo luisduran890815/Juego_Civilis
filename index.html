@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#203c35">
+  <meta name="description" content="Civilis: juego pacífico de construcción, producción, comercio y expansión libre.">
+  <title>Civilis — Construye en paz</title>
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <div class="brand-mark" aria-hidden="true">C</div>
+        <div>
+          <h1>Civilis</h1>
+          <p>Construye en paz</p>
+        </div>
+      </div>
+      <div id="resourceBar" class="resource-bar" aria-label="Recursos"></div>
+      <div class="top-actions">
+        <button id="saveButton" class="icon-button" title="Guardar localmente" aria-label="Guardar localmente">💾</button>
+        <button id="cloudButton" class="icon-button" title="Guardado en la nube" aria-label="Guardado en la nube">☁️</button>
+        <button id="helpButton" class="icon-button" title="Ayuda" aria-label="Ayuda">?</button>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="panel left-panel" aria-label="Panel de construcción">
+        <section class="settlement-card">
+          <div class="eyebrow">TU CIVILIZACIÓN</div>
+          <button id="renameTown" class="town-name" title="Cambiar nombre"><span id="townName">Villa Alba</span> <small>✎</small></button>
+          <div class="stat-grid">
+            <div><span>👥</span><strong id="populationStat">0/0</strong><small>Población</small></div>
+            <div><span>💚</span><strong id="happinessStat">0%</strong><small>Bienestar</small></div>
+          </div>
+        </section>
+
+        <section class="build-section">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">CONSTRUIR</span>
+              <h2>Crece a tu manera</h2>
+            </div>
+            <button id="cancelBuild" class="small-button hidden">Cancelar</button>
+          </div>
+          <div id="categoryTabs" class="category-tabs" role="tablist"></div>
+          <div id="buildList" class="build-list"></div>
+        </section>
+
+        <section class="aspirations">
+          <div class="eyebrow">ASPIRACIONES OPCIONALES</div>
+          <div id="aspirationList"></div>
+        </section>
+      </aside>
+
+      <section class="game-stage" aria-label="Mapa de Civilis">
+        <canvas id="gameCanvas" tabindex="0" aria-label="Mapa isométrico interactivo de la civilización"></canvas>
+        <div class="stage-gradient" aria-hidden="true"></div>
+        <div id="buildHint" class="build-hint hidden"></div>
+        <div id="toastStack" class="toast-stack" aria-live="polite"></div>
+        <div class="clock-card">
+          <div>
+            <strong id="dayLabel">Día 1</strong>
+            <span id="seasonLabel">🌱 Primavera</span>
+          </div>
+          <div id="timeLabel" class="clock-time">07:00</div>
+        </div>
+        <div class="camera-help">Arrastra para mover · Rueda para acercar</div>
+        <div class="speed-controls" aria-label="Control de tiempo">
+          <button id="pauseButton" aria-label="Pausar o reanudar">Ⅱ</button>
+          <button data-speed="1" class="active">1×</button>
+          <button data-speed="2">2×</button>
+          <button data-speed="4">4×</button>
+        </div>
+      </section>
+
+      <aside class="panel right-panel" aria-label="Información y gestión">
+        <section id="selectionEmpty" class="empty-selection">
+          <div class="empty-icon">🌿</div>
+          <h2>Una tierra tranquila</h2>
+          <p>Selecciona un edificio o empieza una construcción. Todo el territorio está abierto desde el principio.</p>
+        </section>
+        <section id="inspector" class="inspector hidden"></section>
+        <section class="village-log">
+          <div class="section-heading compact">
+            <div>
+              <span class="eyebrow">CRÓNICA</span>
+              <h2>Vida del pueblo</h2>
+            </div>
+            <button id="tradeButton" class="trade-button">Comerciar</button>
+          </div>
+          <div id="eventLog" class="event-log"></div>
+        </section>
+      </aside>
+    </main>
+  </div>
+
+  <dialog id="tradeDialog" class="modal wide-modal">
+    <div class="modal-header">
+      <div><span class="eyebrow">RUTAS AMISTOSAS</span><h2>Comercio regional</h2></div>
+      <button class="close-dialog" aria-label="Cerrar">×</button>
+    </div>
+    <p id="tradeIntro" class="modal-lead"></p>
+    <div id="tradeTowns" class="trade-towns"></div>
+  </dialog>
+
+  <dialog id="cloudDialog" class="modal">
+    <div class="modal-header">
+      <div><span class="eyebrow">SIN CUENTAS</span><h2>Guardado en la nube</h2></div>
+      <button class="close-dialog" aria-label="Cerrar">×</button>
+    </div>
+    <p class="modal-lead">Civilis usa un identificador y una clave privada guardados solo en tu navegador. No necesitas iniciar sesión.</p>
+    <div id="cloudStatus" class="cloud-status"></div>
+    <div class="button-row">
+      <button id="createCloudSave" class="primary-button">Crear partida en la nube</button>
+      <button id="syncCloudSave" class="secondary-button">Sincronizar ahora</button>
+    </div>
+    <details class="restore-box">
+      <summary>Restaurar otra partida</summary>
+      <label>ID de partida<input id="cloudIdInput" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"></label>
+      <label>Clave privada<input id="cloudTokenInput" autocomplete="off" placeholder="civ_..."></label>
+      <button id="loadCloudSave" class="secondary-button">Cargar desde la nube</button>
+    </details>
+  </dialog>
+
+  <dialog id="helpDialog" class="modal">
+    <div class="modal-header">
+      <div><span class="eyebrow">GUÍA</span><h2>Cómo jugar</h2></div>
+      <button class="close-dialog" aria-label="Cerrar">×</button>
+    </div>
+    <div id="helpContent" class="help-content"></div>
+    <div class="button-row split">
+      <button id="exportSave" class="secondary-button">Exportar partida</button>
+      <label class="secondary-button file-label">Importar partida<input id="importSave" type="file" accept="application/json"></label>
+      <button id="newGame" class="danger-button">Nueva partida</button>
+    </div>
+  </dialog>
+
+  <dialog id="wonderDialog" class="modal celebration-modal">
+    <div class="celebration-symbol">✨</div>
+    <span class="eyebrow">HITO DE CIVILIS</span>
+    <h2 id="wonderTitle">Una maravilla para las generaciones</h2>
+    <p id="wonderText"></p>
+    <button class="primary-button close-dialog">Seguir construyendo</button>
+  </dialog>
+
+  <dialog id="renameDialog" class="modal small-modal">
+    <div class="modal-header"><h2>Nombra tu civilización</h2><button class="close-dialog" aria-label="Cerrar">×</button></div>
+    <form id="renameForm">
+      <label>Nombre<input id="townNameInput" maxlength="28" required></label>
+      <button class="primary-button" type="submit">Guardar nombre</button>
+    </form>
+  </dialog>
+
+  <noscript><div class="noscript">Civilis necesita JavaScript para funcionar.</div></noscript>
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
