@@ -218,7 +218,27 @@ export class Renderer {
       }
     } else {
       ctx.save();
-      ctx.font = `${Math.round((meta.wonder ? 24 : 17) * this.zoom)}px serif`;
+      const s = this.zoom;
+      const frontY = center.y - lift * 0.42;
+      ctx.globalAlpha = progress < 100 ? .45 : 1;
+      ctx.fillStyle = '#654b37';
+      ctx.fillRect(center.x - 3 * s, frontY, 6 * s, 11 * s);
+      ctx.fillStyle = '#8dc7cc';
+      ctx.fillRect(center.x - 13 * s, frontY - 2 * s, 6 * s, 6 * s);
+      ctx.fillRect(center.x + 7 * s, frontY - 2 * s, 6 * s, 6 * s);
+      ctx.strokeStyle = 'rgba(35,54,49,.5)';
+      ctx.lineWidth = Math.max(1, s);
+      ctx.strokeRect(center.x - 13 * s, frontY - 2 * s, 6 * s, 6 * s);
+      ctx.strokeRect(center.x + 7 * s, frontY - 2 * s, 6 * s, 6 * s);
+      if (['house', 'bakery', 'workshop', 'cheeseMaker', 'tailor'].includes(building.type)) {
+        ctx.fillStyle = '#76584a';
+        ctx.fillRect(center.x + 9 * s, center.y - lift - 12 * s, 5 * s, 14 * s);
+      }
+      if (['market', 'school', 'clinic', 'library', 'warehouse'].includes(building.type)) {
+        ctx.fillStyle = building.type === 'clinic' ? '#f4eee4' : '#d8bd79';
+        ctx.fillRect(center.x - 15 * s, frontY - 9 * s, 30 * s, 5 * s);
+      }
+      ctx.font = `${Math.round((meta.wonder ? 25 : 17) * this.zoom)}px serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.globalAlpha = progress < 100 ? .45 : .92;
@@ -263,25 +283,47 @@ export class Renderer {
   drawVillager(villager, state) {
     const ctx = this.ctx;
     const p = this.worldToScreen(villager.x, villager.y);
-    const bob = Math.sin(performance.now() / 240 + villager.hue) * 1.2 * this.zoom;
+    const now = performance.now();
+    const phase = now / 180 + (villager.hue || 0);
+    const bob = Math.sin(phase) * 1.15 * this.zoom;
+    const step = Math.sin(phase) * 2.1 * this.zoom;
     const s = this.zoom;
-    ctx.fillStyle = 'rgba(38,52,43,.2)';
-    ctx.beginPath(); ctx.ellipse(p.x, p.y + 2 * s, 5 * s, 2.5 * s, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = `hsl(${villager.hue} 43% 47%)`;
-    ctx.fillRect(p.x - 3 * s, p.y - 9 * s + bob, 6 * s, 9 * s);
-    ctx.fillStyle = '#e7bd91';
-    ctx.fillRect(p.x - 2.5 * s, p.y - 14 * s + bob, 5 * s, 5 * s);
-    ctx.fillStyle = `hsl(${(villager.hue + 165) % 360} 34% 25%)`;
-    ctx.fillRect(p.x - 3 * s, p.y - 15 * s + bob, 6 * s, 2.5 * s);
+    const role = String(villager.profession || villager.job || villager.role || 'aldeano').toLowerCase();
+    const roleColors = { agricultor: '#568a47', constructor: '#c57a37', ganadero: '#8b694f', panadero: '#d2a05f', minero: '#65727b', comerciante: '#7d5b96', tejedor: '#4f8194', quesero: '#d7ad45' };
+    const cloth = roleColors[role] || `hsl(${villager.hue || 145} 43% 47%)`;
 
-    if (villager.thought && villager.thoughtUntil > performance.now()) {
-      ctx.fillStyle = 'rgba(255,250,238,.94)';
-      ctx.beginPath(); ctx.roundRect(p.x + 5 * s, p.y - 28 * s, 19 * s, 15 * s, 6 * s); ctx.fill();
+    ctx.fillStyle = 'rgba(32,46,39,.24)';
+    ctx.beginPath(); ctx.ellipse(p.x, p.y + 3 * s, 6 * s, 2.8 * s, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3e4d49';
+    ctx.fillRect(p.x - 3.2 * s, p.y - 2 * s + bob + step, 2.4 * s, 5 * s);
+    ctx.fillRect(p.x + .8 * s, p.y - 2 * s + bob - step, 2.4 * s, 5 * s);
+    ctx.fillStyle = cloth;
+    ctx.fillRect(p.x - 4 * s, p.y - 11 * s + bob, 8 * s, 10 * s);
+    ctx.fillRect(p.x - 5.5 * s, p.y - 10 * s + bob - step * .25, 2 * s, 7 * s);
+    ctx.fillRect(p.x + 3.5 * s, p.y - 10 * s + bob + step * .25, 2 * s, 7 * s);
+    ctx.fillStyle = 'rgba(255,245,220,.55)';
+    ctx.fillRect(p.x - 3 * s, p.y - 7 * s + bob, 6 * s, 5 * s);
+    ctx.fillStyle = '#e7bd91';
+    ctx.fillRect(p.x - 3.4 * s, p.y - 17 * s + bob, 6.8 * s, 6.3 * s);
+    ctx.fillStyle = `hsl(${((villager.hue || 0) + 165) % 360} 34% 25%)`;
+    ctx.fillRect(p.x - 3.8 * s, p.y - 18.3 * s + bob, 7.6 * s, 2.8 * s);
+    if (s > .68) {
+      ctx.fillStyle = '#3b3731';
+      ctx.fillRect(p.x - 1.9 * s, p.y - 14.4 * s + bob, s, s);
+      ctx.fillRect(p.x + .9 * s, p.y - 14.4 * s + bob, s, s);
+    }
+    const icons = { agricultor: '🌾', constructor: '🔨', ganadero: '🐄', panadero: '🥖', minero: '🪨', comerciante: '🪙', tejedor: '🧵', quesero: '🧀' };
+    if (icons[role] && s > .72) {
+      ctx.font = `${Math.round(8 * s)}px serif`; ctx.textAlign = 'center';
+      ctx.fillText(icons[role], p.x, p.y - 22 * s + bob);
+    }
+    if (villager.thought && villager.thoughtUntil > now) {
+      ctx.fillStyle = 'rgba(255,250,238,.96)';
+      ctx.beginPath(); ctx.roundRect(p.x + 6 * s, p.y - 32 * s, 21 * s, 16 * s, 6 * s); ctx.fill();
       ctx.font = `${Math.round(9 * s)}px serif`; ctx.textAlign = 'center'; ctx.fillStyle = '#273a34';
-      ctx.fillText(villager.thought, p.x + 14.5 * s, p.y - 20 * s);
+      ctx.fillText(villager.thought, p.x + 16.5 * s, p.y - 23 * s);
     }
   }
-
   drawAnimals(building) {
     const ctx = this.ctx;
     const count = Math.min(building.animals || 0, 6);
