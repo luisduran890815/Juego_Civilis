@@ -1,5 +1,5 @@
 import {
-  BOT_TOWNS, BUILDINGS, CATEGORIES, GAME_VERSION, HELP_SECTIONS, MAP_SIZE,
+  ASPIRATIONS, ASPIRATION_CATEGORIES, BOT_TOWNS, BUILDINGS, CATEGORIES, GAME_VERSION, HELP_SECTIONS, MAP_SIZE,
   RESOURCE_META, SEASONS, HOURS_PER_REAL_SECOND
 } from './config.js';
 import { createInitialState, createVillager, makeId, normalizeState } from './state.js';
@@ -289,7 +289,7 @@ class Civilis {
   productionBonus() {
     return 1 + this.state.buildings.reduce((sum, building) => {
       const meta = BUILDINGS[building.type];
-      return sum + (building.progress >= 100 && building.workers > 0 ? (meta.productionBonus || 0) : 0);
+      return sum + (building.progress >= 100 && (building.workers > 0 || meta.wonder) ? (meta.productionBonus || 0) : 0);
     }, 0);
   }
 
@@ -549,16 +549,38 @@ class Civilis {
     this.state.log = this.state.log.slice(0, 40);
   }
 
-  renderAspirations() {
-    const aspirations = [
-      { icon: '👥', title: 'Comunidad viva', detail: '10 habitantes', done: this.state.villagers.length >= 10, progress: `${this.state.villagers.length}/10` },
-      { icon: '📦', title: 'Manos creadoras', detail: '100 bienes producidos', done: this.state.totalProduced >= 100, progress: `${Math.min(100, Math.floor(this.state.totalProduced))}/100` },
-      { icon: '🤝', title: 'Buenos vecinos', detail: '50 bienes comerciados', done: this.state.totalTraded >= 50, progress: `${Math.min(50, Math.floor(this.state.totalTraded))}/50` },
-      { icon: '✨', title: 'Legado compartido', detail: 'Construir una maravilla', done: this.state.completedWonders.length > 0, progress: this.state.completedWonders.length ? 'Hecho' : 'Opcional' }
-    ];
-    $('#aspirationList').innerHTML = aspirations.map(item => `<div class="aspiration ${item.done ? 'done' : ''}"><span>${item.done ? '✓' : item.icon}</span><div><strong>${item.title}</strong><small>${item.detail}</small></div><em>${item.progress}</em></div>`).join('');
+  aspirationMetrics() {
+    return {
+      population: this.state.villagers.length,
+      production: Math.floor(this.state.totalProduced || 0),
+      trade: Math.floor(this.state.totalTraded || 0),
+      wealth: Math.floor(this.state.resources.coins || 0),
+      housing: this.housingCapacity(),
+      days: this.state.clock.day,
+      buildings: this.state.buildings.filter(b => b.progress >= 100).length,
+      food: Math.floor(this.totalFood())
+    };
   }
-
+  renderAspirations() {
+    const metrics = this.aspirationMetrics();
+    const groups = ASPIRATION_CATEGORIES.map(category => {
+      const items = ASPIRATIONS.filter(item => item.category === category.id);
+      const completed = items.filter(item => metrics[item.metric] >= item.target).length;
+      const visible = items.filter(item => metrics[item.metric] < item.target).slice(0, 3);
+      const rows = visible.map(item => `
+        <div class="aspiration">
+          <span>${item.icon}</span>
+          <div><strong>${item.title}</strong><small>${item.detail}</small></div>
+          <em>${Math.min(metrics[item.metric], item.target).toLocaleString('es-CO')}/${item.target.toLocaleString('es-CO')}</em>
+        </div>`).join('');
+      return `<section class="aspiration-group">
+        <header><strong>${category.icon} ${category.label}</strong><small>${completed}/125 completadas</small></header>
+        ${rows || '<div class="aspiration done"><span>✓</span><div><strong>Categoría completada</strong><small>Alcanzaste las 125 metas.</small></div><em>Hecho</em></div>'}
+      </section>`;
+    }).join('');
+    const totalDone = ASPIRATIONS.filter(item => metrics[item.metric] >= item.target).length;
+    $('#aspirationList').innerHTML = `<div class="aspiration-summary"><strong>${totalDone}/1000 aspiraciones completadas</strong><small>Se muestran las próximas 3 metas de cada categoría.</small></div>${groups}`;
+  }
   offerPrice(town, offer) {
     const wave = Math.sin((this.state.clock.day + town.id.length + offer.resource.length) * 1.73) * .12;
     return Math.max(1, Math.round(offer.price * (1 + wave)));
