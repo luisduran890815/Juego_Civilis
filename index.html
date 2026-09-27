@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#203c35">
-  <meta name="description" content="Civilis: juego pacífico de construcción, producción, comercio y expansión libre.">
+  <meta name="description" content="Civilis: juego pacífico de construcción, producción, comercio masivo y expansión libre.">
   <title>Civilis — Construye en paz</title>
   <link rel="stylesheet" href="./css/styles.css">
 </head>
@@ -89,7 +89,7 @@
               <span class="eyebrow">CRÓNICA</span>
               <h2>Vida del pueblo</h2>
             </div>
-            <button id="tradeButton" class="trade-button">Comerciar</button>
+            <button id="tradeButton" class="trade-button" title="Abrir comercio regional masivo">Comerciar</button>
           </div>
           <div id="eventLog" class="event-log"></div>
         </section>
@@ -99,11 +99,17 @@
 
   <dialog id="tradeDialog" class="modal wide-modal">
     <div class="modal-header">
-      <div><span class="eyebrow">RUTAS AMISTOSAS</span><h2>Comercio regional</h2></div>
+      <div><span class="eyebrow">RUTAS AMISTOSAS</span><h2>Comercio regional</h2><small>Compra y vende ×1, ×10, ×50, ×100 o MAX</small></div>
       <button class="close-dialog" aria-label="Cerrar">×</button>
     </div>
     <p id="tradeIntro" class="modal-lead"></p>
+    <section class="trade-guide" aria-label="Guía rápida de comercio">
+      <div><strong>📦 Comercio masivo</strong><small>Usa ×10, ×50, ×100 o MAX para mover grandes cantidades.</small></div>
+      <div><strong>✨ Productos premium</strong><small>Queso, tela, ropa, pan, carne, frutas y uvas generan mayores ingresos.</small></div>
+      <div><strong>📈 Precios dinámicos</strong><small>El precio de cada ruta cambia ligeramente cada día.</small></div>
+    </section>
     <div id="tradeTowns" class="trade-towns"></div>
+    <p class="modal-footnote">MAX calcula automáticamente tus existencias disponibles o las unidades que puedes pagar.</p>
   </dialog>
 
   <dialog id="cloudDialog" class="modal">
