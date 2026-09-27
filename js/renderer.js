@@ -255,6 +255,71 @@ export class Renderer {
       ctx.restore();
     }
 
+    if (progress >= 100 && ['cheeseMaker', 'weaver', 'tailor', 'market', 'bakery', 'workshop'].includes(building.type)) {
+      const details = {
+        cheeseMaker: { icon: '🧀', color: '#f0c957' },
+        weaver: { icon: '🧵', color: '#6f9eaf' },
+        tailor: { icon: '👕', color: '#668fc1' },
+        market: { icon: '🪙', color: '#e6b84a' },
+        bakery: { icon: '🥖', color: '#d99a58' },
+        workshop: { icon: '🔨', color: '#748890' }
+      }[building.type];
+      const pulse = 1 + Math.sin(performance.now() / 450 + building.x + building.y) * .08;
+      const badgeX = center.x - 13 * this.zoom;
+      const badgeY = center.y - lift - 13 * this.zoom;
+      ctx.save();
+      ctx.globalAlpha = .96;
+      ctx.fillStyle = 'rgba(255,250,235,.94)';
+      ctx.strokeStyle = details.color;
+      ctx.lineWidth = Math.max(1, 1.5 * this.zoom);
+      ctx.beginPath();
+      ctx.arc(badgeX, badgeY, 9 * this.zoom * pulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.font = `${Math.max(10, Math.round(11 * this.zoom))}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#263a34';
+      ctx.fillText(details.icon, badgeX, badgeY + .4 * this.zoom);
+      ctx.restore();
+    }
+    if (building.type === 'market' && progress >= 100) {
+      const s = this.zoom;
+      const awningY = center.y - lift * .42 - 11 * s;
+      ctx.save();
+      for (let i = 0; i < 5; i++) {
+        ctx.fillStyle = i % 2 ? '#f1df9b' : '#c85a4d';
+        ctx.fillRect(center.x - 15 * s + i * 6 * s, awningY, 6 * s, 5 * s);
+      }
+      ctx.strokeStyle = '#6d4938';
+      ctx.lineWidth = Math.max(1, s);
+      ctx.strokeRect(center.x - 15 * s, awningY, 30 * s, 5 * s);
+      ctx.restore();
+    }
+    if (building.type === 'weaver' && progress >= 100) {
+      const cx = center.x + 10 * this.zoom;
+      const cy = center.y - lift - 1 * this.zoom;
+      ctx.save();
+      ctx.strokeStyle = '#d9eef2';
+      ctx.lineWidth = Math.max(1, 1.5 * this.zoom);
+      for (let i = -1; i <= 1; i++) {
+        ctx.beginPath();
+        ctx.moveTo(cx - 7 * this.zoom, cy + i * 4 * this.zoom);
+        ctx.lineTo(cx + 7 * this.zoom, cy + i * 4 * this.zoom);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+    if (building.type === 'tailor' && progress >= 100) {
+      const p = this.worldToScreen(building.x + .78, building.y + .62);
+      ctx.save();
+      ctx.fillStyle = '#b7d3e6';
+      ctx.fillRect(p.x - 5 * this.zoom, p.y - 9 * this.zoom, 10 * this.zoom, 7 * this.zoom);
+      ctx.strokeStyle = '#46677b';
+      ctx.lineWidth = Math.max(1, this.zoom);
+      ctx.strokeRect(p.x - 5 * this.zoom, p.y - 9 * this.zoom, 10 * this.zoom, 7 * this.zoom);
+      ctx.restore();
+    }
     if (building.type === 'observatory' && progress >= 100) {
       ctx.fillStyle = '#d7dce6';
       ctx.beginPath(); ctx.arc(center.x, center.y - lift - 4 * this.zoom, 12 * this.zoom, Math.PI, 0); ctx.fill();

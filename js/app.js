@@ -116,7 +116,7 @@ class Civilis {
     $('#tradeTowns').addEventListener('click', event => {
       const button = event.target.closest('[data-trade]');
       if (!button) return;
-      this.executeTrade(button.dataset.town, Number(button.dataset.offer), Number(button.dataset.qty));
+      this.executeTrade(button.dataset.town, Number(button.dataset.offer), button.dataset.qty);
     });
 
     window.addEventListener('keydown', event => {
@@ -595,40 +595,68 @@ class Civilis {
 
   renderTrade() {
     $('#tradeIntro').textContent = `Día ${this.state.clock.day}: los pueblos comercian de forma autónoma y sus precios varían a diario. Tus monedas: ${fmt(this.state.resources.coins)}.`;
+    const tradeQuantities = [1, 10, 50, 100];
     $('#tradeTowns').innerHTML = BOT_TOWNS.map(town => `
       <article class="trade-town">
         <header style="background:${town.color}"><h3>${town.name}</h3><small>${town.specialty}</small></header>
         <div class="offer-list">${town.offers.map((offer, index) => {
           const price = this.offerPrice(town, offer);
           const isTownBuying = offer.mode === 'buy';
-          const canOne = isTownBuying ? this.state.resources[offer.resource] >= 1 : this.state.resources.coins >= price;
-          const canFive = isTownBuying ? this.state.resources[offer.resource] >= 5 : this.state.resources.coins >= price * 5;
+          const stock = Math.floor(this.state.resources[offer.resource] || 0);
+          const affordable = Math.floor((this.state.resources.coins || 0) / price);
+          const maxQty = Math.max(0, isTownBuying ? stock : affordable);
+          const buttons = tradeQuantities.map(quantity => {
+            const canTrade = maxQty >= quantity;
+            return `<button data-trade="1" data-town="${town.id}" data-offer="${index}" data-qty="${quantity}" ${canTrade ? '' : 'disabled'}>×${quantity}</button>`;
+          }).join(' ');
           return `<div class="offer"><div><strong>${RESOURCE_META[offer.resource].icon} ${RESOURCE_META[offer.resource].label}</strong><small>${isTownBuying ? 'Te compra' : 'Te vende'} · 🪙${price} c/u</small></div>
-            <div><button data-trade="1" data-town="${town.id}" data-offer="${index}" data-qty="1" ${canOne ? '' : 'disabled'}>×1</button> <button data-trade="1" data-town="${town.id}" data-offer="${index}" data-qty="5" ${canFive ? '' : 'disabled'}>×5</button></div></div>`;
+            <div>${buttons} <button data-trade="1" data-town="${town.id}" data-offer="${index}" data-qty="max" ${maxQty > 0 ? '' : 'disabled'}>MAX</button></div></div>`;
         }).join('')}</div>
       </article>`).join('');
   }
 
-  executeTrade(townId, offerIndex, quantity) {
+  executeTrade(townId, offerIndex, quantityValue) {
     const town = BOT_TOWNS.find(item => item.id === townId);
     const offer = town?.offers[offerIndex];
-    if (!town || !offer || ![1, 5].includes(quantity)) return;
-    const price = this.offerPrice(town, offer) * quantity;
+    if (!town || !offer) return;
+
+    const unitPrice = this.offerPrice(town, offer);
+    const stock = Math.floor(this.state.resources[offer.resource] || 0);
+    const affordable = Math.floor((this.state.resources.coins || 0) / unitPrice);
+    const maxQty = Math.max(0, offer.mode === 'buy' ? stock : affordable);
+    const quantity = quantityValue === 'max' ? maxQty : Math.floor(Number(quantityValue));
+
+    if (![1, 10, 50, 100].includes(quantity) && quantityValue !== 'max') return;
+    if (!Number.isFinite(quantity) || quantity <= 0) return this.toast('No hay unidades disponibles para comerciar.', 'warn');
+
+    const totalPrice = unitPrice * quantity;
     if (offer.mode === 'buy') {
-      if (this.state.resources[offer.resource] < quantity) return this.toast('No tienes suficientes existencias.', 'warn');
+      if (stock < quantity) return this.toast('No tienes suficientes existencias.', 'warn');
       this.state.resources[offer.resource] -= quantity;
-      this.state.resources.coins += price;
-      this.addLog(`Vendiste ${quantity} de ${RESOURCE_META[offer.resource].label.toLowerCase()} a ${town.name}.`);
+      this.state.resources.coins += totalPrice;
+      this.addLog(`Vendiste ${quantity.toLocaleString('es-CO')} de ${RESOURCE_META[offer.resource].label.toLowerCase()} a ${town.name} por ${totalPrice.toLocaleString('es-CO')} monedas.`);
     } else {
-      if (this.state.resources.coins < price) return this.toast('No tienes suficientes monedas.', 'warn');
-      this.state.resources.coins -= price;
+      if (this.state.resources.coins < totalPrice) return this.toast('No tienes suficientes monedas.', 'warn');
+      this.state.resources.coins -= totalPrice;
       this.state.resources[offer.resource] += quantity;
-      this.addLog(`Compraste ${quantity} de ${RESOURCE_META[offer.resource].label.toLowerCase()} a ${town.name}.`);
+      this.addLog(`Compraste ${quantity.toLocaleString('es-CO')} de ${RESOURCE_META[offer.resource].label.toLowerCase()} a ${town.name} por ${totalPrice.toLocaleString('es-CO')} monedas.`);
     }
+
     this.state.totalTraded += quantity;
-    this.toast(`Intercambio amistoso con ${town.name}.`, 'good');
+    this.state.tradeHistory.push({
+      day: this.state.clock.day,
+      townId,
+      resource: offer.resource,
+      mode: offer.mode,
+      quantity,
+      unitPrice,
+      totalPrice
+    });
+    this.state.tradeHistory = this.state.tradeHistory.slice(-100);
+    this.toast(`Intercambio de ${quantity.toLocaleString('es-CO')} unidades con ${town.name}.`, 'good');
     this.renderTrade();
     this.refreshUI(true);
+    saveLocal(this.state);
   }
 
   celebrateWonder(meta) {

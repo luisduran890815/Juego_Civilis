@@ -1,5 +1,5 @@
-export const GAME_VERSION = '1.2.0';
-export const MAP_SIZE = 34;
+export const GAME_VERSION = '1.3.0';
+export const MAP_SIZE = 80;
 export const TILE_W = 64;
 export const TILE_H = 32;
 export const HOURS_PER_REAL_SECOND = 0.72;
@@ -144,27 +144,35 @@ export const BUILDINGS = {
 
 export const BOT_TOWNS = [
   {
-    id: 'marisma-clara', name: 'Marisma Clara', color: '#5f9f91', specialty: 'Lácteos y tejidos',
+    id: 'marisma-clara', name: 'Marisma Clara', color: '#5f9f91', specialty: 'Lácteos, quesos y tejidos',
     offers: [
-      { mode: 'buy', resource: 'milk', price: 5 },
-      { mode: 'buy', resource: 'wool', price: 8 },
-      { mode: 'sell', resource: 'grain', price: 3 }
+      { mode: 'buy', resource: 'milk', price: 10 },
+      { mode: 'buy', resource: 'wool', price: 15 },
+      { mode: 'buy', resource: 'cheese', price: 25 },
+      { mode: 'buy', resource: 'fabric', price: 35 },
+      { mode: 'buy', resource: 'clothes', price: 60 },
+      { mode: 'sell', resource: 'grain', price: 6 }
     ]
   },
   {
-    id: 'puerto-lucero', name: 'Puerto Lucero', color: '#4e7ca1', specialty: 'Herramientas y piedra',
+    id: 'puerto-lucero', name: 'Puerto Lucero', color: '#4e7ca1', specialty: 'Herramientas, piedra y manufacturas',
     offers: [
-      { mode: 'buy', resource: 'tools', price: 15 },
-      { mode: 'sell', resource: 'stone', price: 4 },
-      { mode: 'buy', resource: 'bread', price: 7 }
+      { mode: 'buy', resource: 'tools', price: 30 },
+      { mode: 'buy', resource: 'bread', price: 15 },
+      { mode: 'buy', resource: 'meat', price: 18 },
+      { mode: 'sell', resource: 'stone', price: 8 },
+      { mode: 'sell', resource: 'wood', price: 8 }
     ]
   },
   {
-    id: 'valle-dorado', name: 'Valle Dorado', color: '#c38b45', specialty: 'Madera y alimentos',
+    id: 'valle-dorado', name: 'Valle Dorado', color: '#c38b45', specialty: 'Alimentos, frutas y cosechas',
     offers: [
-      { mode: 'sell', resource: 'wood', price: 4 },
-      { mode: 'buy', resource: 'vegetables', price: 4 },
-      { mode: 'sell', resource: 'eggs', price: 5 }
+      { mode: 'buy', resource: 'vegetables', price: 8 },
+      { mode: 'buy', resource: 'eggs', price: 10 },
+      { mode: 'buy', resource: 'corn', price: 9 },
+      { mode: 'buy', resource: 'fruit', price: 14 },
+      { mode: 'buy', resource: 'grapes', price: 20 },
+      { mode: 'sell', resource: 'flour', price: 12 }
     ]
   }
 ];
@@ -187,7 +195,7 @@ export const HELP_SECTIONS = [
   ['Construcción', 'Elige un edificio y haz clic en una casilla libre. Las obras avanzan con aldeanos disponibles; puedes construir en cualquier parte accesible del mapa.'],
   ['Población', 'Las casas aumentan la capacidad. Con alimento, bienestar y espacio libre llegarán nuevos habitantes. Nadie desaparece por falta de comida: el bienestar baja hasta que te recuperes.'],
   ['Producción', 'Selecciona un edificio terminado para asignar trabajadores. Algunas cadenas consumen insumos: grano → harina → pan, y madera + piedra → herramientas.'],
-  ['Comercio', 'Construye un mercado para comprar y vender a tres pueblos bot. Sus precios cambian un poco cada día.'],
+  ['Comercio', 'Construye un mercado para comprar y vender en lotes de 1, 10, 50, 100 o MAX. Los pueblos compran materias primas y productos premium; sus precios cambian un poco cada día.'],
   ['Controles', 'Arrastra para desplazar, usa la rueda para acercar, WASD o flechas para mover la cámara. Espacio pausa; 1, 2 y 3 cambian la velocidad.']
 ];
 
